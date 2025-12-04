@@ -14,11 +14,18 @@ use colored::*;
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
+
+    print!("{}\r", "awaiting request...".red());
+    std::io::stdout().flush().unwrap();
+
     let res = RequestClient::new(args.clone())
         .make_request()
         .await
         .expect("Error getting response");
+
+    print!("\r{}\n", " ".repeat(20));
     println!("{}", &res.bright_green());
+
     if !(&args.verbose) {
         copy_to_clipboard(&res).expect("Error copying to clipboard");
         // println!("{}", "result copied to clipboard!".red());
