@@ -3,15 +3,14 @@ mod client;
 mod config;
 
 use crate::args::Args;
-
-use clap::Parser;
 use crate::client::Client;
+use clap::Parser;
+use colored::*;
 
-#[tokio::main]
-async fn main() {
+fn main() {
     let client = Client::new();
     let args = Args::parse();
-    let input = args.input;
-    println!("Usage {}!", input);
+    let prompt = Client::gen_prompt(args);
+    let res = client.send_prompt(&prompt).expect("Error getting response");
+    println!("{}", res.green());
 }
-

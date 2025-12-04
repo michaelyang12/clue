@@ -5,7 +5,7 @@ use clap::Parser;
 #[command(version, about, long_about = None)]
 pub struct Args {
     pub(crate) input: String,
-    
+
     #[arg(short, long)]
     pub(crate) verbose: bool,
 }
