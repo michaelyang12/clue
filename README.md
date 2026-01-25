@@ -1,12 +1,12 @@
-# clue
+# knock
 
-clue is a CLI command helper written in Rust.
+knock is a CLI command helper written in Rust.
 
-Simply describe what you want to do in plain English and clue returns the best matching shell command, automatically copied to your clipboard.
+Simply describe what you want to do in plain English and knock returns the best matching shell command, automatically copied to your clipboard.
 
 Example:
 
-    clue "git clean commit history"
+    kn "git clean commit history"
 
 Output:
 
@@ -18,17 +18,17 @@ Installation
 
 Requires Rust and Cargo.
 
-    cargo install --git https://github.com/michaelyang12/clue.git --locked
+    cargo install --git https://github.com/michaelyang12/knock.git --locked
 
-This installs the `clue` binary into ~/.cargo/bin
+This installs the `kn` binary into ~/.cargo/bin
 
 ---
 
 Environment Setup
 
-clue uses the OpenAI API and requires an API key.
+knock uses the OpenAI API and requires an API key.
 
-1. Create an OpenAI account  
+1. Create an OpenAI account
 You must have an OpenAI account with billing enabled.
 
 2. Set your API key
@@ -43,15 +43,15 @@ Usage
 
 Basic usage:
 
-    clue "find all large files over 500MB"
+    kn "find all large files over 500MB"
 
 Verbose mode (recommended if you want to review options):
 
-    clue --verbose "undo last git commit but keep changes"
+    kn --verbose "undo last git commit but keep changes"
 
 or:
 
-    clue -v "undo last git commit but keep changes"
+    kn -v "undo last git commit but keep changes"
 
 Verbose mode returns:
 - The top 5 command suggestions
