@@ -8,6 +8,7 @@ use std::path::PathBuf;
 pub enum Provider {
     OpenAI,
     Anthropic,
+    Ollama,
 }
 
 impl Default for Provider {
@@ -22,6 +23,8 @@ pub struct Config {
     pub provider: Provider,
     pub openai_model: Option<String>,
     pub anthropic_model: Option<String>,
+    pub ollama_model: Option<String>,
+    pub ollama_url: Option<String>,
 }
 
 impl Config {
@@ -45,5 +48,22 @@ impl Config {
 
     pub fn anthropic_model(&self) -> &str {
         self.anthropic_model.as_deref().unwrap_or("claude-sonnet-4-20250514")
+    }
+
+    pub fn ollama_model(&self) -> &str {
+        self.ollama_model.as_deref().unwrap_or("llama3.2")
+    }
+
+    pub fn ollama_url(&self) -> &str {
+        self.ollama_url.as_deref().unwrap_or("http://localhost:11434")
+    }
+
+    pub fn save(&self) -> std::io::Result<()> {
+        let path = Self::config_path();
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        let json = serde_json::to_string_pretty(self).unwrap();
+        std::fs::write(path, json)
     }
 }

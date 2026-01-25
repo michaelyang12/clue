@@ -19,4 +19,12 @@ pub struct Args {
     /// Show command history (optionally filter by search term)
     #[arg(long)]
     pub(crate) history: bool,
+
+    /// Configure provider and model
+    #[arg(long)]
+    pub(crate) config: bool,
+
+    /// Upgrade to latest version from git
+    #[arg(long)]
+    pub(crate) upgrade: bool,
 }

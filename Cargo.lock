@@ -923,7 +923,7 @@ dependencies = [
 
 [[package]]
 name = "knock"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = [
  "async-openai",
  "clap",
@@ -1397,6 +1397,7 @@ dependencies = [
  "base64",
  "bytes",
  "encoding_rs",
+ "futures-channel",
  "futures-core",
  "futures-util",
  "h2",

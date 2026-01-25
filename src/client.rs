@@ -71,6 +71,7 @@ impl RequestClient {
         match self.config.provider {
             Provider::OpenAI => self.request_openai().await,
             Provider::Anthropic => self.request_anthropic().await,
+            Provider::Ollama => self.request_ollama().await,
         }
     }
 
@@ -133,6 +134,45 @@ impl RequestClient {
             .map(|c| c.text.clone())
             .ok_or_else(|| "Empty response from Anthropic".into())
     }
+
+    async fn request_ollama(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+        let prompt = self.gen_prompt();
+        let url = format!("{}/api/chat", self.config.ollama_url());
+
+        let request_body = OllamaRequest {
+            model: self.config.ollama_model().to_string(),
+            messages: vec![
+                OllamaMessage {
+                    role: "system".to_string(),
+                    content: INSTRUCTIONS.to_string(),
+                },
+                OllamaMessage {
+                    role: "user".to_string(),
+                    content: prompt,
+                },
+            ],
+            stream: false,
+            options: OllamaOptions {
+                temperature: 0.2,
+                num_predict: if self.args.verbose { 512 } else { 256 },
+            },
+        };
+
+        let client = reqwest::Client::new();
+        let response = client
+            .post(&url)
+            .json(&request_body)
+            .send()
+            .await?;
+
+        if !response.status().is_success() {
+            let error_text = response.text().await?;
+            return Err(format!("Ollama error: {}. Is Ollama running?", error_text).into());
+        }
+
+        let response_body: OllamaResponse = response.json().await?;
+        Ok(response_body.message.content)
+    }
 }
 
 #[derive(Serialize)]
@@ -157,4 +197,34 @@ struct AnthropicResponse {
 #[derive(Deserialize)]
 struct AnthropicContent {
     text: String,
+}
+
+#[derive(Serialize)]
+struct OllamaRequest {
+    model: String,
+    messages: Vec<OllamaMessage>,
+    stream: bool,
+    options: OllamaOptions,
+}
+
+#[derive(Serialize)]
+struct OllamaMessage {
+    role: String,
+    content: String,
+}
+
+#[derive(Serialize)]
+struct OllamaOptions {
+    temperature: f32,
+    num_predict: u32,
+}
+
+#[derive(Deserialize)]
+struct OllamaResponse {
+    message: OllamaResponseMessage,
+}
+
+#[derive(Deserialize)]
+struct OllamaResponseMessage {
+    content: String,
 }

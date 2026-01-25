@@ -4,6 +4,7 @@ mod client;
 mod config;
 mod context;
 mod history;
+mod setup;
 
 use std::io::{self, BufRead, Write};
 use std::process::{Command, Stdio};
@@ -20,6 +21,16 @@ use colored::*;
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
+
+    if args.upgrade {
+        upgrade();
+        return;
+    }
+
+    if args.config {
+        setup::run_setup();
+        return;
+    }
 
     if args.history {
         show_history(&args.input);
@@ -49,9 +60,8 @@ async fn main() {
     };
 
     // Save to history
-    let mut history = History::load();
+    let history = History::load();
     history.add(args.input.clone(), res.clone());
-    let _ = history.save();
 
     println!("{}", &res.bright_green());
 
@@ -84,7 +94,7 @@ fn show_history(filter: &str) {
         return;
     }
 
-    for entry in entries.iter().rev() {
+    for entry in entries.iter() {
         println!("{}", entry.query.dimmed());
         println!("  {}", entry.command.bright_green());
     }
@@ -121,4 +131,26 @@ fn copy_to_clipboard(text: &str) -> Result<(), Box<dyn std::error::Error>> {
     child.stdin.as_mut().unwrap().write_all(text.as_bytes())?;
     child.wait()?;
     Ok(())
+}
+
+const REPO_URL: &str = "https://github.com/michaelyang12/knock.git";
+
+fn upgrade() {
+    println!("{}", "Upgrading knock...".cyan());
+
+    let status = Command::new("cargo")
+        .args(["install", "--git", REPO_URL, "--locked", "--force"])
+        .status();
+
+    match status {
+        Ok(s) if s.success() => {
+            println!("{}", "Upgrade complete!".green());
+        }
+        Ok(_) => {
+            eprintln!("{}", "Upgrade failed".red());
+        }
+        Err(e) => {
+            eprintln!("{}", format!("Failed to run cargo: {}", e).red());
+        }
+    }
 }
