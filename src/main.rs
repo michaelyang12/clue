@@ -134,9 +134,54 @@ fn copy_to_clipboard(text: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 const REPO_URL: &str = "https://github.com/michaelyang12/knock.git";
+const CARGO_TOML_URL: &str = "https://raw.githubusercontent.com/michaelyang12/knock/master/Cargo.toml";
+const LOCAL_VERSION: &str = env!("CARGO_PKG_VERSION");
+
+fn get_remote_version() -> Option<String> {
+    let output = Command::new("curl")
+        .args(["-sL", CARGO_TOML_URL])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let content = String::from_utf8(output.stdout).ok()?;
+    for line in content.lines() {
+        if line.starts_with("version") {
+            let version = line
+                .split('=')
+                .nth(1)?
+                .trim()
+                .trim_matches('"');
+            return Some(version.to_string());
+        }
+    }
+    None
+}
 
 fn upgrade() {
-    println!("{}", "Upgrading knock...".cyan());
+    println!("{}", "Checking for updates...".cyan());
+
+    match get_remote_version() {
+        Some(remote_version) if remote_version == LOCAL_VERSION => {
+            println!(
+                "{}",
+                format!("Already up to date (v{}).", LOCAL_VERSION).green()
+            );
+            return;
+        }
+        Some(remote_version) => {
+            println!(
+                "{}",
+                format!("Upgrading from v{} to v{}...", LOCAL_VERSION, remote_version).cyan()
+            );
+        }
+        None => {
+            println!("{}", "Could not check remote version, upgrading anyway...".yellow());
+        }
+    }
 
     let status = Command::new("cargo")
         .args(["install", "--git", REPO_URL, "--locked", "--force"])
